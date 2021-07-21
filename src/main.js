@@ -2,6 +2,7 @@ import Vue from "vue";
 import App from "./App.vue";
 import Vuelidate from "vuelidate";
 import VueRouter from "vue-router";
+import store from "./store";
 
 import Index from "./views/Index.vue";
 
@@ -27,5 +28,6 @@ const router = new VueRouter({
 
 new Vue({
   router,
+  store,
   render: (h) => h(App),
 }).$mount("#app");

@@ -11,7 +11,7 @@
       </button>
       <div class="form-check form-switch">
         <input
-          v-model="clickAndDrag"
+          v-model="draggable"
           class="form-check-input"
           type="checkbox"
           id="flexSwitchCheckDefault"
@@ -28,30 +28,30 @@
         :key="index"
         :name="card.name"
         :description="card.description"
-        @click="checkCard(card)"
+        @click="showSelectedCard(card)"
         @dragstart="take($event, index)"
         @drop="move($event, index)"
         style="cursor: pointer; max-height: 190px; min-height: 190px; overflow: auto"
-        :draggable="clickAndDrag"
+        :draggable="draggable"
       />
     </section>
 
     <Modal
-      v-if="showModal"
+      v-if="showMode"
       width="350px"
       height="300px"
-      @close="showModal = false"
+      @close="SET_SHOW_MODE(false)"
     >
       <div class="modal-content">
         <div class="modal-header">
           <h5 class="modal-title title">{{ selectedCard.name }}</h5>
-          <button @click="showModal = false" class="btn-close"></button>
+          <button @click="SET_SHOW_MODE(false)" class="btn-close"></button>
         </div>
         <div class="modal-body" style="overflow: auto; word-wrap: break-word;">
           <p>{{ selectedCard.description }}</p>
         </div>
         <div class="modal-footer">
-          <button @click="showModal = false" class="btn btn-secondary">
+          <button @click="SET_SHOW_MODE(false)" class="btn btn-secondary">
             Закрыть
           </button>
         </div>
@@ -64,48 +64,48 @@
 import Card from "../components/Card.vue";
 import Modal from "../components/Modal.vue";
 import CardController from "../controllers/CardController";
-import Vue from "vue";
+import { mapActions, mapMutations, mapState } from "vuex";
 
 export default {
   components: { Card, Modal },
   mounted() {
     if (!CardController.items.length)
-      this.cards = [
+      this.setCards([
         { name: "Наименование1", description: "Описание1" },
         { name: "Наименование2", description: "Описание2" },
-      ];
-    CardController.setItems(this.cards);
+      ]);
+
+    this.setCards(this.cards);
   },
   data() {
     return {
-      cards: CardController.items,
-      selectedCard: {},
-      showModal: false,
-      clickAndDrag: false,
+      draggable: false,
     };
   },
   methods: {
-    checkCard(card) {
-      this.selectedCard = card;
-      this.showModal = true;
-    },
+    ...mapActions(["showSelectedCard", "setCards"]),
+    ...mapMutations(["SET_SHOW_MODE"]),
     move(event, index) {
       const transferIndex = event.dataTransfer.getData("index");
 
       const from = { ...this.cards[transferIndex] };
       const to = { ...this.cards[index] };
 
-      Vue.set(this.cards, index, from);
-      Vue.set(this.cards, transferIndex, to);
-      CardController.setItems(this.cards);
+      const replacedCards = [...this.cards];
+
+      replacedCards[index] = from;
+      replacedCards[transferIndex] = to;
+
+      this.setCards(replacedCards);
     },
     take(event, index) {
-      if (this.clickAndDrag) {
-        event.dataTransfer.dropEffect = "move";
-        event.dataTransfer.effectAllowed = "move";
-        event.dataTransfer.setData("index", index.toString());
-      }
+      event.dataTransfer.dropEffect = "move";
+      event.dataTransfer.effectAllowed = "move";
+      event.dataTransfer.setData("index", index.toString());
     },
+  },
+  computed: {
+    ...mapState(["cards", "showMode", "selectedCard"]),
   },
 };
 </script>

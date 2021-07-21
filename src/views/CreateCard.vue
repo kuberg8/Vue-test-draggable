@@ -60,7 +60,7 @@
 </template>
 
 <script>
-import CardController from "../controllers/CardController";
+import { mapActions } from "vuex";
 import { required } from "vuelidate/lib/validators";
 
 export default {
@@ -79,13 +79,14 @@ export default {
     };
   },
   methods: {
+    ...mapActions(["addCard"]),
     add() {
       if (this.$v.card.$invalid) {
         this.$v.$touch();
         return;
       }
 
-      CardController.addItem(this.card);
+      this.addCard(this.card);
       this.$router.push("/");
     },
   },
